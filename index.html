@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#1a8cff"/>
+  <meta name="description" content="Aplicativo de estudos interativo sobre GptOpFuzNav — Fuzileiros Navais"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="FuzNav2026"/>
+  <title>GptOpFuzNav — Fuzileiros Navais 2026</title>
+  <link rel="manifest" href="/GptOpFuzNav-FuzNav2026/manifest.json"/>
+  <link rel="icon" href="/GptOpFuzNav-FuzNav2026/icon-192.png"/>
+  <link rel="apple-touch-icon" href="/GptOpFuzNav-FuzNav2026/icon-192.png"/>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a1220; color: #c8d8e8; font-family: 'Segoe UI', Arial, sans-serif; }
+    #root { min-height: 100vh; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0a1220; }
+    ::-webkit-scrollbar-thumb { background: #2d3e52; border-radius: 3px; }
+    textarea, input, select { font-family: 'Segoe UI', Arial, sans-serif; }
+    mark { border-radius: 3px; padding: 1px 2px; }
+  </style>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useRef } = React;
+
+    /* ═══════════════════════════════════════════════════════
+       DADOS — nível de módulo
+    ═══════════════════════════════════════════════════════ */
+
+    const QUESTOES_PADRAO = [
+      { tipo:"Múltipla Escolha", enunciado:"Em qual das características da Cobertura de Imprensa devemos organizar os pensamentos e ideias e estarmos preparados para condensá-los, sermos breves e irmos direto ao ponto.", opcoes:["A) Prêmio de jornalismo.","B) Reação em cadeia.","C) Limitação de espaço e tempo.","D) Repórteres inexperientes.","E) Prazo fatal."], gabarito:"C" },
+      { tipo:"Múltipla Escolha", enunciado:"Qual tipo de Operação Ofensiva termina quando a tropa atinge um ponto previamente estabelecido ou quando posições de resistência do inimigo impedem o movimento, forçando o desdobramento da tropa.", opcoes:["A) Marcha para o Combate.","B) Reconhecimento em força.","C) Ataque coordenado.","D) Aproveitamento do êxito.","E) Perseguição."], gabarito:"A" },
+      { tipo:"Múltipla Escolha", enunciado:"Qual seção do Estado-Maior Geral que desenvolve: levantamento das necessidades de conhecimento, orientação do esforço de busca e uso e difusão dos conhecimentos.", opcoes:["A) 1ª Seção (Pessoal).","B) 2ª Seção (Inteligência).","C) 3ª Seção (Operações).","D) 4ª Seção (Logística).","E) 5ª Seção (Intendência)."], gabarito:"B" },
+      { tipo:"Múltipla Escolha", enunciado:"Em 1° de maio de 1808, o Príncipe Regente declara guerra à França. A Brigada Real da Marinha participa da campanha que garantiu para o Brasil o atual estado do Amapá. Qual campanha foi descrita?", opcoes:["A) Campanha da Cisplatina.","B) Campanha Contra Aguirre.","C) Campanha de Oribe Rosas.","D) Campanha da Consolidação da Independência.","E) Campanha da Guiana Francesa."], gabarito:"E" },
+      { tipo:"Múltipla Escolha", enunciado:"Qual das alternativas abaixo NÃO é um propósito da Incursão Anfíbia?", opcoes:["A) Obter informações.","B) Criar uma diversão.","C) Conquistar áreas ou pontos capitais do terreno.","D) Destruir ou danificar certos objetivos.","E) Capturar ou resgatar pessoal ou material."], gabarito:"C" },
+      { tipo:"Múltipla Escolha", enunciado:"É uma operação militar, enquadrada naquelas de Emprego Limitado da Força, determinada pelo Presidente da República e conduzida pelas FA de forma episódica, em área previamente estabelecida e por tempo limitado, e tem por objetivo a preservação da ordem pública e da incolumidade das pessoas e do patrimônio.", opcoes:["A) GLO — Garantia da Lei e da Ordem.","B) Operações de Evacuação de Não-Combatentes.","C) Operações Ribeirinhas.","D) Operações de Paz.","E) Operações Anfíbias."], gabarito:"A" },
+      { tipo:"Múltipla Escolha", enunciado:"Em 2004, a FFE foi chamada a participar de Operação de Manutenção da Paz em decorrência do movimento armado iniciado na Cidade de Gonaives, que levou o presidente Jean Bertrand Aristide a abandonar o país. Qual Operação de Manutenção da Paz está descrita?", opcoes:["A) Angola.","B) Haiti.","C) República Dominicana.","D) Moçambique.","E) Líbano."], gabarito:"B" },
+      { tipo:"Múltipla Escolha", enunciado:"Qual das alternativas abaixo NÃO é um Fundamento da Ofensiva?", opcoes:["A) Manter a segurança.","B) Progredir pelo fogo e movimento.","C) Obter e manter o contato.","D) Explorar deficiências do inimigo.","E) Máximo Emprego da Ação Ofensiva."], gabarito:"E" },
+      { tipo:"Múltipla Escolha", enunciado:"Qual seção do EM Geral tem as tarefas básicas de controlar quantitativamente o material de estacionamento, armamento, equipamento e executar reconhecimentos para propor itinerários, locais de pontos de suprimentos e instalações de serviço?", opcoes:["A) 1ª Seção (Pessoal).","B) 2ª Seção (Inteligência).","C) 3ª Seção (Operações).","D) 4ª Seção (Logística).","E) 5ª Seção (Intendência)."], gabarito:"D" },
+      { tipo:"Múltipla Escolha", enunciado:"Qual é o documento que expressa, de maneira abreviada, a Resolução do CS da ONU quanto à condução de determinada OpPaz, com validade de seis meses a um ano, podendo ser renovado, e incorpora os acordos e negociações entre as partes em conflito e os países contribuintes?", opcoes:["A) Carta da ONU.","B) Resolução.","C) Regras de Engajamento.","D) Mandado.","E) Mandato."], gabarito:"E" },
+      { tipo:"Complete as Lacunas", enunciado:"(Generalidades dos GptOpFuzNav) 'O(A) _______ é estruturado(a) para executar as tarefas básicas a ele(a) atribuídas, tal como apresentadas pela Doutrina Básica da Marinha (DBM). Os _______ , como parte de um conjugado anfíbio, são, prioritariamente, empregados para as tarefas de Projeção de Poder sobre Terra por meios das OpAnf.'", gabarito:"Poder Naval; GptOpFuzNav." },
+      { tipo:"Cite", enunciado:"Cite as fases de uma Operação Ribeirinha.", gabarito:"Planejamento; Embarque e Carregamento; Movimento para a Área de Operações; e Desenvolvimentos das ações." },
+      { tipo:"Discursiva", enunciado:"Ao iniciar a Segunda Guerra Mundial, foram implantadas mais três companhias regionais com atribuições de vigilância de praias, policiamento e defesa de portos. Onde foram implantadas essas 03 (três) companhias regionais?", gabarito:"Natal, Recife e Salvador." },
+      { tipo:"Certo ou Errado", enunciado:"Qual característica da Cobertura de Imprensa: os fatos importantes ou graves são geralmente seguidos pela 'ressuscitação' de ocorrências anteriores de mesma natureza, além de estarmos preparados para desvincular o fato presente de outras ocorrências que, à primeira vista, pareçam semelhantes.", gabarito:"Reação em cadeia." },
+      { tipo:"Discursiva", enunciado:"Que tipo de Operação do GptOpFuzNav é uma ação que se desenvolve, por meio de contingente de Forças Navais terrestres e aéreas, proporcionadas isoladamente por um Estado ou por Estados Membros da ONU, para a urgente prestação de socorro de natureza diversa?", gabarito:"Operação de Assistência Humanitária." },
+    ];
+
+    const MC_QS = [
+      { q:"Em qual característica da Cobertura de Imprensa devemos organizar os pensamentos, sermos breves e irmos direto ao ponto?", opts:["Prêmio de jornalismo","Reação em cadeia","Limitação de espaço e tempo","Repórteres inexperientes","Prazo fatal"], ans:2, hint:"Pense em 'condensar', 'breve', 'direto ao ponto' — qual pressiona o comunicador a ser objetivo?", mem:"🎯 LET = Limitação de Espaço e Tempo. 'LET-me be brief!' — Limite = seja breve!" },
+      { q:"Qual tipo de Operação Ofensiva termina quando a tropa atinge ponto previamente estabelecido ou quando resistências do inimigo impedem o movimento?", opts:["Marcha para o Combate","Reconhecimento em Força","Ataque Coordenado","Aproveitamento do Êxito","Perseguição"], ans:0, hint:"Esta operação começa antes do combate, indo AO encontro do inimigo — é um 'marchar'.", mem:"🚶 MARCHA termina quando para de marchar — ponto previsto ou obstáculo do inimigo." },
+      { q:"Qual seção do Estado-Maior faz levantamento das necessidades de conhecimento, orientação do esforço de busca e difusão de conhecimentos?", opts:["1ª Seção (Pessoal)","2ª Seção (Inteligência)","3ª Seção (Operações)","4ª Seção (Logística)","5ª Seção (Intendência)"], ans:1, hint:"Quem 'conhece' o inimigo? Quem levanta informações e faz inteligência?", mem:"🔍 2ª = Inteligência = INFO. Dois olhos para ver o inimigo!" },
+      { q:"A Brigada Real da Marinha participou da campanha que garantiu para o Brasil o atual estado do Amapá (1808). Qual foi esta campanha?", opts:["Campanha da Cisplatina","Campanha Contra Aguirre","Campanha de Oribe Rosas","Campanha da Consolidação da Independência","Campanha da Guiana Francesa"], ans:4, hint:"O Amapá fica ao norte do Brasil, próximo à fronteira com a Guiana Francesa.", mem:"🗺️ AMAPÁ = GUIANA FRANCESA. 1808 → Príncipe Regente → Amapá = Guiana!" },
+      { q:"Qual das alternativas NÃO é propósito da Incursão Anfíbia?", opts:["Obter informações","Criar uma diversão","Conquistar áreas ou pontos capitais do terreno","Destruir ou danificar objetivos","Capturar ou resgatar pessoal"], ans:2, hint:"Incursão é rápida e temporária — não é para ficar e ocupar. Qual implica permanência?", mem:"⚡ Incursão = RÁPIDA. 'Conquistar e manter' é do Assalto Anfíbio, não da Incursão!" },
+      { q:"Operação de Emprego Limitado da Força, determinada pelo Presidente, por tempo limitado, para preservar a ordem pública:", opts:["GLO — Garantia da Lei e da Ordem","Evacuação de Não-Combatentes","Operações Ribeirinhas","Operações de Paz","Operações Anfíbias"], ans:0, hint:"Ordem pública, incolumidade, determinada pelo Presidente, episódica.", mem:"🇧🇷 GLO = Garantia Lei Ordem. Presidente determina → FA preservam a ordem." },
+      { q:"Operação de Paz de 2004, movimento em Gonaives, presidente Aristide abandonou o país:", opts:["Angola","Haiti","República Dominicana","Moçambique","Líbano"], ans:1, hint:"Gonaives, Jean Bertrand Aristide, 2004 — país caribenho, MINUSTAH.", mem:"🏝️ HAITI 2004 = MINUSTAH. H-A-I-T-I = Heroica Ação de Intervenção Tática Internacional!" },
+      { q:"Qual das alternativas NÃO é Fundamento da Ofensiva?", opts:["Manter a segurança","Progredir pelo fogo e movimento","Obter e manter o contato","Explorar deficiências do inimigo","Máximo Emprego da Ação Ofensiva"], ans:4, hint:"Fundamentos: segurança, fogo/movimento, contato, explorar fraquezas, concentração, surpresa.", mem:"❌ 'Máximo Emprego' não é fundamento — é princípio geral. Os fundamentos são táticos!" },
+      { q:"Qual seção do EM controla material de estacionamento, armamento, equipamentos e executa reconhecimento de itinerários e pontos de suprimento?", opts:["1ª Seção (Pessoal)","2ª Seção (Inteligência)","3ª Seção (Operações)","4ª Seção (Logística)","5ª Seção (Intendência)"], ans:3, hint:"Suprimentos, itinerários, material — isso é administração de recursos.", mem:"📦 4ª = Logística = quatro rodas de caminhão de suprimento!" },
+      { q:"Documento da ONU com validade de 6 meses a 1 ano, incorporando acordos e negociações para condução de OpPaz:", opts:["Carta da ONU","Resolução","Regras de Engajamento","Mandado","Mandato"], ans:4, hint:"Não confunda com Resolução (mais ampla) nem com ROE (regras táticas). Tem validade definida.", mem:"📋 MANDATO = dura período fixo (6m–1a). CS da ONU aprova → tropas entram!" },
+    ];
+
+    const CE_QS = [
+      { q:"A fase 'Assalto' corresponde ao período entre a chegada do Corpo Principal da ForTarAnf à ADbq e o término da OpAnf.", ans:false, hint:"O Assalto vai do H-Hour ao estabelecimento da cabeça de praia — não termina na ADbq.", justificativa:"MNT (Movimento Navio-para-Terra) é que vai até ADbq. O Assalto é o combate na praia.", mem:"🎯 Assalto = combate na praia. MNT = deslocamento navio→terra. São fases distintas!" },
+      { q:"A fase do Ensaio termina com a chegada do Corpo Principal da ForTarAnf na AOA, na Área Marítima da ADbq.", ans:false, hint:"É a fase de TRAVESSIA que termina com a chegada na AOA — o Ensaio é anterior.", justificativa:"Travessia termina com chegada na AOA. Ensaio é simulação antes da travessia.", mem:"📋 ENSAIO ensaia antes de ir. TRAVESSIA chega na AOA. Não confunda!" },
+      { q:"O Embarque é a fase de uma OpAnf durante a qual as Forças, com seus equipamentos e suprimentos, são embarcadas nos navios designados.", ans:true, hint:"Esta é a definição clássica do Embarque.", justificativa:"Definição exata e correta da fase Embarque.", mem:"⚓ EMBARQUE = Entrar no Barco. Equipes + equipamentos + suprimentos → navios. CERTO!" },
+      { q:"Planejamento é a fase de uma OpAnf em que são preparados e divulgados pela ForDbq os Planos ou Ordens necessários à execução.", ans:true, hint:"Esta é a definição exata do Planejamento.", justificativa:"Definição exata e correta da fase Planejamento.", mem:"📝 PLANEJAR = Preparar Planos. Primeiro passo de qualquer operação. CERTO!" },
+      { q:"A 2ª Seção (Inteligência) do EM tem como tarefa controlar quantitativamente o material de estacionamento, armamento e executar reconhecimentos para escolha de itinerários.", ans:false, hint:"Controlar material e itinerários é tarefa de Logística (4ª Seção), não de Inteligência.", justificativa:"2ª Seção = Inteligência = informações do inimigo. Material/itinerários = 4ª Seção.", mem:"❌ 2ª = Inteligência = inimigo. Material e itinerários = 4ª Seção (Logística)." },
+      { q:"A Ultrapassagem é uma operação em que uma tropa ataca através do dispositivo de outra que está em posição na linha de frente, visando manter a iniciativa e a impulsão do ataque.", ans:true, hint:"Esta é a definição exata de Ultrapassagem.", justificativa:"Definição exata e correta da Ultrapassagem.", mem:"🔄 ULTRAPASSAGEM = Passa por CIMA (pela frente) da tropa amiga. CERTO!" },
+    ];
+
+    const CL_QS = [
+      { q:"O(A) _______ é estruturado(a) para executar as tarefas básicas a ele(a) atribuídas, tal como apresentadas pela Doutrina Básica da Marinha (DBM). Os _______ , como parte de um 'conjugado anfíbio', são prioritariamente empregados para as tarefas de Projeção de Poder sobre Terra por meios das OpAnf.", lacunas:["Poder Naval","GptOpFuzNav"], hint:"O que é 'estruturado' pela DBM? E o que compõe o conjugado anfíbio?", mem:"⚓ PODER NAVAL é estruturado; GptOpFuzNav emprega. PN → GptOpFuzNav → OpAnf → Terra!" },
+      { q:"O _______ é personificado pelo Comandante do GptOpFuzNav e seu EM Geral e Especial, organizados em Centros de Coordenação e Controle, com destacamentos de _______, Operações Especiais (Recon) e Guerra Eletrônica (MAGE).", lacunas:["CCmdo (Componente de Comando)","Apoio ao Comando e Controle (ApC2)"], hint:"Quem 'personifica' o comando? Que tipo de apoio existe para C2?", mem:"👨‍✈️ CCmdo = Cabeça do GptOpFuzNav. ApC2 apoia o C2 do CCmdo." },
+      { q:"As fases de uma OpAnf são: _______, _______, _______, _______ e _______.", lacunas:["Planejamento","Embarque","Ensaio","Travessia","Assalto"], hint:"PETAS: Planejamento, Embarque, Ensaio, Travessia, Assalto.", mem:"🚢 PETAS: P→E→E→T→A. Cinco fases em ordem!" },
+      { q:"O _______ é o componente que concentra os meios de Cmb e ApCmb para conquista e manutenção do terreno, trabalhando no _______ e no CCAF.", lacunas:["CCT (Componente de Combate Terrestre)","Centro de Operações de Combate (COC)"], hint:"CCT = Combate Terrestre. Onde funciona seu centro de operações?", mem:"⚔️ CCT = Combate Terrestre. COC = Centro de Operações. CCT-COC-CCAF!" },
+    ];
+
+    const DEF_QS = [
+      { termo:"GptOpFuzNav", hint:"Sigla e estrutura da tropa anfíbia da Marinha do Brasil.", gabarito:"Grupo de Operações de Fuzileiros Navais — estrutura operativa anfíbia da Marinha, composta por CCmdo, CCT, CCA e CASC, empregada para Projeção de Poder sobre Terra nas Operações Anfíbias.", resumido:"Estrutura anfíbia da MB: CCmdo + CCT + CCA + CASC → Projeção de Poder sobre Terra." },
+      { termo:"Mandato (OpPaz)", hint:"Documento da ONU com duração definida que orienta a condução de Operações de Paz.", gabarito:"Documento que expressa, de maneira abreviada, a Resolução do CS da ONU quanto à condução de determinada OpPaz. Validade de 6 meses a 1 ano, podendo ser renovado. Incorpora acordos e negociações entre as partes em conflito e países contribuintes.", resumido:"Documento ONU: orienta OpPaz, dura 6m–1a, incorpora acordos. ≠ Resolução ≠ ROE." },
+      { termo:"Incursão Anfíbia", hint:"Operação temporária, sem intenção de manutenção do terreno.", gabarito:"Operação anfíbia de curta duração, realizada para obter informações, criar diversão, destruir/danificar objetivos ou capturar/resgatar pessoal, sem intenção de manter permanentemente o terreno.", resumido:"OpAnf rápida e temporária. Propósitos: informar, diversionar, destruir, capturar. NÃO conquista permanente." },
+      { termo:"GLO (Garantia da Lei e da Ordem)", hint:"Operação de Emprego Limitado determinada pelo Presidente da República.", gabarito:"Operação militar de Emprego Limitado da Força, determinada pelo Presidente da República e conduzida pelas FA de forma episódica, em área e por tempo limitados, com objetivo de preservar a ordem pública e a incolumidade das pessoas e do patrimônio.", resumido:"PresRep determina → FA atuam episodicamente → preserva ordem pública e patrimônio." },
+      { termo:"Fundamentos da Ofensiva", hint:"Guias comuns para comandantes em operações ofensivas.", gabarito:"(1) Manter a segurança; (2) Obter e manter o contato; (3) Progredir pelo fogo e movimento; (4) Explorar deficiências do inimigo; (5) Concentração; (6) Surpresa. NÃO inclui 'Máximo Emprego da Ação Ofensiva'.", resumido:"SCFECS: Segurança, Contato, Fogo/Mov., Explorar, Concentração, Surpresa. NUNCA 'Máximo Emprego'!" },
+      { termo:"Perseguição (Op. Ofensiva)", hint:"Operação ofensiva para destruir tropa inimiga em retirada.", gabarito:"Operação ofensiva destinada a cercar e destruir tropa inimiga que esteja em processo de desengajamento ou que tenta fugir, impedindo sua reorganização e a realização de movimentos retrógrados ordenados.", resumido:"Perseguição = cercar e destruir inimigo que foge. Impede reorganização e retirada ordenada." },
+      { termo:"Reconhecimento em Força", hint:"Operação ofensiva para obter informações sobre o inimigo pelo combate.", gabarito:"Operação ofensiva que visa revelar e testar o dispositivo, a força e o valor do inimigo, ou obter outras informações necessárias ao planejamento, por meio do combate.", resumido:"REC em Força = provocar o inimigo para descobrir onde está e o que tem. Levantamento pelo combate." },
+      { termo:"CASC", hint:"Componente de Apoio de Serviço ao Combate do GptOpFuzNav.", gabarito:"Componente de Apoio de Serviço ao Combate — dispõe de EM próprio que trabalha no COL (Centro de Operações Logística). Provê ao GptOpFuzNav o apoio logístico até a ILS de cada componente, incluindo funções logísticas essenciais e atividades específicas de aviação.", resumido:"CASC = logística do GptOpFuzNav. Trabalha no COL. Apoia até a ILS. Inclui aviação logística." },
+    ];
+
+    const COR_SETS = [
+      { titulo:"Tipos de Operações Ofensivas × Conceitos", esquerda:["(1) Marcha para o Combate","(2) Reconhecimento em Força","(3) Ataque Coordenado","(4) Aproveitamento do Êxito","(5) Perseguição"], direita:["Visa estabelecer, o mais cedo possível, o contato com o inimigo ou restabelecê-lo.","Visa revelar e testar o dispositivo, a força e o valor do inimigo para obter informações.","Manobra combinando fogo e movimento para lançar-se violentamente sobre o inimigo.","Emprego coordenado da manobra e apoio de fogo para cerrar sobre o inimigo e neutralizá-lo.","Destrói a capacidade do inimigo de reorganizar-se, resistir ou realizar movimento retrógrado.","DISTRATOR: Envolve substituição lateral de tropa em posição sem combate."], gabarito:[1,2,3,4,5], falso:5, hint:"MC=contato; RF=reconhece; AC=coordena fogo+manobra; AÊ=explorar; Perseg=destruir fugitivos." },
+      { titulo:"Componentes do GptOpFuzNav × Funções", esquerda:["(1) CCmdo","(2) CCT","(3) CCA","(4) CASC"], direita:["Personificado pelo Cmt do GptOpFuzNav; EM Geral e Especial; inclui ApC2, Recon e MAGE.","Concentra meios de Cmb e ApCmb para conquista/manutenção do terreno; COC e CCAF.","Coordena meios para ApAe, controle aerotático e DefAAe; apoio logístico de aviação.","Provê ApSvCmb por meio das funções logísticas; trabalha no COL.","DISTRATOR: Realiza operações de reconhecimento independente no nível operacional."], gabarito:[1,2,3,4], falso:4, hint:"CCmdo=Cmt; CCT=Terra; CCA=Aeronáutica; CASC=Logística(COL)." },
+      { titulo:"Fases das OpAnf × Definições", esquerda:["(1) Planejamento","(2) Embarque","(3) Ensaio","(4) Travessia","(5) Assalto"], direita:["Preparação e divulgação dos Planos/Ordens necessários à execução da OpAnf.","Forças, equipamentos e suprimentos são colocados nos navios designados.","Simulação das ações de desembarque para verificar eficiência dos planos.","Deslocamento da Força Anf da área de embarque até a AOA.","Período de conquista da cabeça de praia e objetivos iniciais em terra.","DISTRATOR: Fase de reorganização após a conquista dos objetivos finais."], gabarito:[1,2,3,4,5], falso:5, hint:"PETAS: Planejamento→Embarque→Ensaio→Travessia→Assalto." },
+    ];
+
+    const CITE_QS = [
+      { q:"Cite as fases de uma Operação Ribeirinha.", hint:"São 4 fases, iniciando pelo Planejamento.", gabarito:"1. Planejamento\n2. Embarque e Carregamento\n3. Movimento para a Área de Operações\n4. Desenvolvimento das ações", resumido:"P-E-M-D: Planejamento → Embarque/Carga → Mov.Área → Desenvolvimento." },
+      { q:"Cite os propósitos da Incursão Anfíbia.", hint:"São 4 propósitos, todos temporários.", gabarito:"1. Obter informações\n2. Criar uma diversão\n3. Destruir ou danificar certos objetivos\n4. Capturar ou resgatar pessoal ou material", resumido:"I-D-D-C: Informações, Diversão, Destruição, Captura. NUNCA conquistar terreno permanente." },
+      { q:"Cite as seções do Estado-Maior Geral e suas funções principais.", hint:"São 5 seções numeradas de 1ª a 5ª.", gabarito:"1ª: Pessoal\n2ª: Inteligência (levantamento/difusão de conhecimentos)\n3ª: Operações\n4ª: Logística (material, armamento, itinerários)\n5ª: Intendência/Comunicações", resumido:"P-I-O-L-I: Pessoal, Inteligência, Ops, Logística, Intend. 1-2-3-4-5." },
+      { q:"Cite onde foram implantadas as três companhias regionais durante a Segunda Guerra Mundial.", hint:"Três cidades do Nordeste do Brasil.", gabarito:"1. Natal (RN)\n2. Recife (PE)\n3. Salvador (BA)", resumido:"NRS = Natal, Recife, Salvador. Nordeste defendido! N-R-S da costa!" },
+    ];
+
+    const LISTE_QS = [
+      { q:"Liste os componentes do GptOpFuzNav.", hint:"São 4 componentes com siglas.", gabarito:"1. CCmdo – Componente de Comando\n2. CCT – Componente de Combate Terrestre\n3. CCA – Componente de Combate Aeronáutico\n4. CASC – Componente de Apoio de Serviço ao Combate", resumido:"CCmdo + CCT + CCA + CASC = GptOpFuzNav. Mnemônico: quatro 'C's!" },
+      { q:"Liste as Operações de Paz em que o CFN (FFE) participou.", hint:"Incluem Angola, Moçambique, Haiti...", gabarito:"1. Angola\n2. Moçambique\n3. República Dominicana\n4. Haiti (MINUSTAH, 2004)\n5. Líbano\n6. Timor Leste", resumido:"AM-RH-LT: Angola, Moçambique, Rep. Dom., Haiti, Líbano, Timor." },
+      { q:"Liste os fundamentos da ofensiva.", hint:"São 6 guias comuns para comandantes.", gabarito:"1. Manter a segurança\n2. Obter e manter o contato\n3. Progredir pelo fogo e movimento\n4. Explorar deficiências do inimigo\n5. Concentração\n6. Surpresa", resumido:"SCFECS: Segurança, Contato, Fogo/Mov., Explorar, Concentração, Surpresa. ≠ 'Máximo Emprego'!" },
+      { q:"Liste as características da Cobertura de Imprensa.", hint:"São as características que o militar deve conhecer para lidar com a mídia.", gabarito:"1. Reação em cadeia\n2. Limitação de espaço e tempo\n3. Prazo fatal\n4. Repórteres inexperientes\n5. Prêmio de jornalismo", resumido:"R-L-P-R-P: Reação, Limitação, Prazo, Repórteres, Prêmio." },
+    ];
+
+    const VF_QS = [
+      { q:"O GptOpFuzNav é estruturado para executar as tarefas básicas da Doutrina Básica da Marinha (DBM) e é o principal elemento da Projeção de Poder sobre Terra.", ans:true, hint:"A DBM define as tarefas do GptOpFuzNav como principal tropa anfíbia.", mem:"✅ GptOpFuzNav = tropa anfíbia principal da MB. DBM define suas tarefas." },
+      { q:"A Operação de Assistência Humanitária é conduzida exclusivamente por militares brasileiros, sem participação de outros países.", ans:false, hint:"Pode ser realizada por Estados Membros da ONU ou outros organismos internacionais.", mem:"❌ Assist. Humanitária pode ser multilateral: ONU, organizações internacionais, outros países." },
+      { q:"A Ultrapassagem é uma operação defensiva em que uma tropa recua pelo dispositivo de outra para evitar cerco.", ans:false, hint:"Ultrapassagem é ofensiva — uma tropa ataca ATRAVÉS de outra que está em posição.", mem:"❌ Ultrapassagem = OFENSIVA. Tropa A passa por Tropa B para manter impulsão do ataque." },
+      { q:"A Campanha da Guiana Francesa (1808) resultou na garantia do território que hoje corresponde ao estado do Amapá.", ans:true, hint:"O Príncipe Regente declarou guerra à França em 1808.", mem:"✅ 1808: Príncipe Regente + Campanha Guiana Francesa = Amapá para o Brasil." },
+      { q:"O CCmdo do GptOpFuzNav é responsável apenas pelo Comando e Controle, sem inclusão de elementos de Guerra Eletrônica ou Operações Especiais.", ans:false, hint:"O CCmdo integra ApC2, Operações Especiais (Recon) e Guerra Eletrônica (MAGE).", mem:"❌ CCmdo inclui: ApC2 + Recon + MAGE. Não é só C2 básico!" },
+      { q:"As três companhias regionais criadas durante a Segunda Guerra Mundial foram instaladas em Natal, Recife e Salvador.", ans:true, hint:"Eram para vigilância de praias, policiamento e defesa de portos.", mem:"✅ NRS = Natal + Recife + Salvador. Nordeste vigiado na 2ª GM. Lembre: NaReS!" },
+    ];
+
+    const FLASHCARDS = [
+      { frente:"O que é o GptOpFuzNav?", verso:"Grupo de Operações de Fuzileiros Navais — estrutura operativa anfíbia da Marinha do Brasil.\n\nComponentes: CCmdo, CCT, CCA e CASC.", hint:"Pense nos 4 componentes com 'C'.", mem:"🔵 4 Cs: Comando + Combate Terrestre + Combate Aéreo + Apoio. C-C-C-C!" },
+      { frente:"Quais são as 5 fases de uma Operação Anfíbia?", verso:"1. Planejamento\n2. Embarque\n3. Ensaio\n4. Travessia\n5. Assalto\n\nMnemônico: PETAS", hint:"PETAS — cinco letras, cinco fases.", mem:"🚢 PETAS: toda OpAnf passa por estas 5 etapas, nesta ordem!" },
+      { frente:"Quais são os tipos de Operações Ofensivas?", verso:"1. Marcha para o Combate\n2. Reconhecimento em Força\n3. Ataque Coordenado\n4. Aproveitamento do Êxito\n5. Perseguição\n\nMnemônico: MaRCAP", hint:"5 tipos: MC, RF, AC, AÊ, P.", mem:"⚔️ MaRCAP: Marcha→Reconhece→Coordena→Aproveita→Persegue!" },
+      { frente:"O que é Mandato nas Operações de Paz?", verso:"Documento que expressa a Resolução do CS da ONU para condução de OpPaz.\nValidade: 6 meses a 1 ano (renovável).\nIncorpora acordos entre partes em conflito e países contribuintes.", hint:"Validade definida, pelo Conselho de Segurança.", mem:"📋 Mandato = dura período fixo. CS da ONU aprova → tropas entram!" },
+      { frente:"Qual a diferença entre Assalto Anfíbio e Incursão Anfíbia?", verso:"Assalto Anfíbio: conquista e mantém o terreno PERMANENTEMENTE.\n\nIncursão Anfíbia: ação TEMPORÁRIA (informações, diversão, destruição, captura) — não mantém terreno.", hint:"Um fica, outro vai embora.", mem:"🏖️ Assalto = fica na praia. Incursão = faz o serviço e volta!" },
+      { frente:"O que é Operação GLO?", verso:"Garantia da Lei e da Ordem — Emprego Limitado da Força, determinado pelo Presidente da República, conduzido pelas FA de forma episódica, em área e tempo limitados, para preservar a ordem pública.", hint:"Presidente determina, Forças Armadas executam.", mem:"🇧🇧 GLO = 3 palavras chave: Garantia + Lei + Ordem. PresRep → FA garantem!" },
+      { frente:"Qual a diferença entre Marcha para o Combate e Perseguição?", verso:"Marcha: ESTABELECE o contato com o inimigo. Termina quando atinge ponto previsto ou resistência impede avanço.\n\nPerseguição: CERCA E DESTRÓI o inimigo em retirada/fuga.", hint:"Marcha vai AO encontro; Perseguição vai ATRÁS.", mem:"📍 Marcha = ir ao encontro (início). Perseguição = não deixar escapar (fim)!" },
+      { frente:"Qual campanha garantiu o Amapá ao Brasil?", verso:"Campanha da Guiana Francesa (1808).\n\nO Príncipe Regente declarou guerra à França em 1° de maio de 1808, como represália à invasão de Portugal. A Brigada Real da Marinha participou.", hint:"1808, Príncipe Regente, norte do Brasil.", mem:"🗺️ AMAPÁ = GUIANA FRANCESA (1808). Brigada Real → Amapá é nosso!" },
+      { frente:"O que é a Reação em Cadeia na Cobertura de Imprensa?", verso:"Fatos graves são seguidos pela 'ressuscitação' de ocorrências anteriores semelhantes. O militar deve estar preparado para DESVINCULAR o fato presente de outros que pareçam similares.", hint:"Um fato grave 'ressuscita' casos antigos.", mem:"🔗 Reação em Cadeia = efeito dominó da mídia. Separe cada fato!" },
+      { frente:"Quais são as seções do Estado-Maior Geral?", verso:"1ª: Pessoal\n2ª: Inteligência\n3ª: Operações\n4ª: Logística\n5ª: Comunicações/Intendência\n\nMnemônico: PIOLC", hint:"P-I-O-L-C ou 1 a 5.", mem:"🏛️ PIOLC: Pessoal, Inteligência, Ops, Logística, Comunic. Cinco letras = 5 seções!" },
+      { frente:"Onde foram instaladas as 3 Cias Regionais durante a 2ª GM?", verso:"Natal (RN), Recife (PE) e Salvador (BA)\n\nMissão: vigilância de praias, policiamento e defesa de portos.", hint:"Três cidades nordestinas.", mem:"🌊 NaReS = Natal + Recife + Salvador. Nordeste defendido!" },
+      { frente:"O que é o CASC?", verso:"Componente de Apoio de Serviço ao Combate.\nTrabalha no COL (Centro de Operações Logística).\nApoia logisticamente até a ILS de cada componente.", hint:"Logística, COL, ILS.", mem:"📦 CASC = Comida, Armamento, Suprimento, Combustível. Trabalha no COL → apoia até ILS!" },
+    ];
+
+    const SUPER_RESUMO = `⚓ SUPER RESUMO — GptOpFuzNav
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+1. ESTRUTURA DO GptOpFuzNav
+━━━━━━━━━━━━━━━━━━━━━━━━━
+CCmdo — Comando (Cmt + EM + ApC2 + Recon + MAGE)
+CCT   — Combate Terrestre (COC + CCAF)
+CCA   — Combate Aeronáutico (ApAe + DefAAe)
+CASC  — Apoio Logístico (COL → apoia até ILS)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+2. OpAnf — 5 FASES (PETAS)
+━━━━━━━━━━━━━━━━━━━━━━━━━
+Planejamento → Embarque → Ensaio → Travessia → Assalto
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+3. OPS OFENSIVAS (MaRCAP)
+━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Marcha p/ Combate — estabelece contato
+2. Recon em Força   — testa/revela o inimigo
+3. Ataque Coordenado — fogo + manobra
+4. Aprov. do Êxito  — destrói reorganização
+5. Perseguição      — cerca e destrói fugitivos
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+4. FUNDAMENTOS OFENSIVA (≠ Máximo Emprego!)
+━━━━━━━━━━━━━━━━━━━━━━━━━
+Segurança • Contato • Fogo+Mov. • Explorar • Concentração • Surpresa
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+5. EM GERAL — PIOLC
+━━━━━━━━━━━━━━━━━━━━━━━━━
+1ª Pessoal • 2ª Inteligência • 3ª Ops • 4ª Logística • 5ª Comunic.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+6. OPS DE PAZ / GLO
+━━━━━━━━━━━━━━━━━━━━━━━━━
+GLO: PresRep → FA episódico → preserva ordem pública
+Mandato ONU: 6m–1a, renovável, define condução da OpPaz
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+7. HISTÓRICO CFN
+━━━━━━━━━━━━━━━━━━━━━━━━━
+1808: Guiana Francesa → Amapá
+2ª GM: Natal, Recife e Salvador
+2004: Haiti — MINUSTAH (Aristide + Gonaives)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+8. OP RIBEIRINHA — 4 FASES
+━━━━━━━━━━━━━━━━━━━━━━━━━
+Planejamento → Embarque/Carga → Mov. Área Ops → Desenvolvimento
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+9. COBERTURA DE IMPRENSA
+━━━━━━━━━━━━━━━━━━━━━━━━━
+Reação Cadeia • Lim. Espaço/Tempo • Prazo Fatal
+Repórteres Inexperientes • Prêmio Jornalismo`;
+
+    const RESUMO_BLOCOS = [
+      { titulo:"Bloco 1 — Estrutura do GptOpFuzNav", conteudo:`O GptOpFuzNav é a estrutura operativa anfíbia da Marinha do Brasil, empregada para Projeção de Poder sobre Terra por meio das OpAnf, como parte de um "conjugado anfíbio" do Poder Naval.
+
+COMPONENTES:
+
+🔵 CCmdo (Componente de Comando)
+• Personificado pelo Cmt do GptOpFuzNav e seu EM Geral e Especial
+• Organizado em Centros de Coordenação e Controle
+• Integra: ApC2, Operações Especiais (Recon) e MAGE (G. Eletrônica)
+
+🔴 CCT (Componente de Combate Terrestre)
+• EM Geral e Especial → COC e CCAF
+• Conquista e manutenção do terreno
+
+🟡 CCA (Componente de Combate Aeronáutico)
+• Coordena ApAe, controle aerotático e DefAAe
+• Apoio logístico de aviação
+
+🟢 CASC (Componente de Apoio de Serviço ao Combate)
+• EM → COL (Centro de Operações Logística)
+• Apoia logisticamente até a ILS de cada componente` },
+      { titulo:"Bloco 2 — Operações Anfíbias", conteudo:`TIPOS:
+• Assalto Anfíbio: conquista e mantém terreno permanentemente
+• Incursão Anfíbia: temporária (info, diversão, destruição, captura)
+• Retirada Anfíbia: retira forças sob pressão
+• Demonstração Anfíbia: ameaça sem desembarque real
+
+FASES (PETAS):
+1. Planejamento: preparação e divulgação de Planos/Ordens
+2. Embarque: forças, equipamentos e suprimentos embarcam
+3. Ensaio: simulação para verificar eficiência dos planos
+4. Travessia: deslocamento até a AOA
+5. Assalto: conquista da cabeça de praia
+
+PEGADINHAS:
+❌ MNT ≠ Assalto
+❌ Ensaio NÃO termina na AOA — isso é a Travessia
+✅ Embarque = forças entram nos navios
+✅ Planejamento = prepara e divulga Planos/Ordens` },
+      { titulo:"Bloco 3 — Operações Ofensivas", conteudo:`TIPOS (MaRCAP):
+
+1. MARCHA PARA O COMBATE
+• Estabelece/restabelece contato com o inimigo
+• Termina: atinge ponto previsto OU resistência impede avanço
+
+2. RECONHECIMENTO EM FORÇA
+• Revela e testa dispositivo, força e valor do inimigo
+• Obtenção de informações pelo combate
+
+3. ATAQUE COORDENADO
+• Manobra + apoio de fogo coordenados
+• Cerrar, destruir ou neutralizar o inimigo
+
+4. APROVEITAMENTO DO ÊXITO
+• Destrói capacidade de reorganização do inimigo
+• Impede movimento retrógrado ordenado
+
+5. PERSEGUIÇÃO
+• Cerca e destrói tropa em desengajamento/fuga
+• Mais intensa que Aproveitamento do Êxito
+
+FUNDAMENTOS (≠ Máximo Emprego):
+Segurança • Contato • Fogo+Movimento • Explorar • Concentração • Surpresa` },
+      { titulo:"Bloco 4 — Ops de Paz, GLO e EM", conteudo:`GLO (Garantia da Lei e da Ordem):
+• Emprego Limitado da Força
+• Determinada pelo Presidente da República
+• FA atuam episodicamente
+• Área e tempo limitados
+• Objetivo: preservar ordem pública e incolumidade
+
+MANDATO (ONU):
+• Expressa a Resolução do CS da ONU
+• Validade: 6 meses a 1 ano (renovável)
+• Fundamentos, objetivos, acordos e negociações
+
+MISSÕES DE PAZ: Angola • Moçambique • República Dom.
+HAITI (2004 — MINUSTAH): Aristide + Gonaives
+
+ESTADO-MAIOR GERAL (PIOLC):
+1ª Pessoal
+2ª Inteligência: levantamento/difusão de conhecimentos
+3ª Operações
+4ª Logística: material, armamento, itinerários, suprimentos
+5ª Comunicações/Intendência` },
+      { titulo:"Bloco 5 — Histórico e Cobertura de Imprensa", conteudo:`HISTÓRICO DO CFN:
+• 1808: Príncipe Regente declara guerra à França
+  → Campanha da Guiana Francesa → garante o Amapá
+• Mar/1809: FN instalam-se na Fortaleza de São José (Ilha das Cobras)
+• 2ª GM: CFN atuou em guarda, segurança e representações
+  → 3 Cias Regionais: NATAL, RECIFE, SALVADOR
+  (vigilância de praias, policiamento, defesa de portos)
+
+COBERTURA DE IMPRENSA — 5 CARACTERÍSTICAS:
+1. Reação em Cadeia: ressuscita ocorrências anteriores
+2. Limitação de Espaço e Tempo: ser breve, direto ao ponto
+3. Prazo Fatal: prazos rígidos para publicação
+4. Repórteres Inexperientes: podem distorcer informações
+5. Prêmio de Jornalismo: busca por notícias impactantes
+
+OP RIBEIRINHA — 4 FASES (P-E-M-D):
+1. Planejamento
+2. Embarque e Carregamento
+3. Movimento para a Área de Operações
+4. Desenvolvimento das ações` },
+    ];
+
+    const MAPA_MENTAL = {
+      centro: "GptOpFuzNav",
+      ramos: [
+        { label:"Componentes", cor:"#1a8cff", filhos:[{label:"CCmdo",desc:"Cmt + EM + ApC2 + Recon + MAGE"},{label:"CCT",desc:"Combate Terrestre + COC + CCAF"},{label:"CCA",desc:"Aeronáutico + ApAe + DefAAe"},{label:"CASC",desc:"Logística + COL → ILS"}] },
+        { label:"OpAnf — PETAS", cor:"#00c97f", filhos:[{label:"Planejamento",desc:"Prepara Planos/Ordens"},{label:"Embarque",desc:"Forças entram nos navios"},{label:"Ensaio",desc:"Simula ações"},{label:"Travessia",desc:"Vai até AOA"},{label:"Assalto",desc:"Conquista cabeça de praia"}] },
+        { label:"Ops Ofensivas", cor:"#ff5252", filhos:[{label:"Marcha Combate",desc:"Estabelece contato"},{label:"Recon em Força",desc:"Testa/revela inimigo"},{label:"Ataque Coord.",desc:"Fogo + manobra"},{label:"Aprov. Êxito",desc:"Destrói reorganização"},{label:"Perseguição",desc:"Cerca e destrói fugitivos"}] },
+        { label:"Ops de Paz / GLO", cor:"#ffaa00", filhos:[{label:"GLO",desc:"PresRep → FA episódico → ordem pública"},{label:"Mandato",desc:"CS ONU, 6m–1a"},{label:"Haiti (2004)",desc:"MINUSTAH, Aristide"},{label:"Assist. Human.",desc:"Socorro urgente, ONU/países"}] },
+        { label:"EM Geral — PIOLC", cor:"#b44fff", filhos:[{label:"1ª — Pessoal",desc:"Recursos humanos"},{label:"2ª — Inteligência",desc:"Levanta/difunde conhecimentos"},{label:"3ª — Operações",desc:"Planejamento tático"},{label:"4ª — Logística",desc:"Material, armamento, itinerários"},{label:"5ª — Comunicações",desc:"Intendência e C2"}] },
+        { label:"Histórico CFN", cor:"#ff7f50", filhos:[{label:"1808 Guiana Fr.",desc:"Amapá garantido ao Brasil"},{label:"2ª GM",desc:"Natal, Recife, Salvador"},{label:"MINUSTAH 2004",desc:"Haiti — brigada brasileira"}] },
+      ]
+    };
+
+    /* ═══ ESTADO MUTÁVEL (nível de módulo) ═══ */
+    let mc_state = { idx:0, chosen:Array(MC_QS.length).fill(null), confirmed:Array(MC_QS.length).fill(false), wrong:[], mode:"all" };
+    let ce_state = { idx:0, chosen:Array(CE_QS.length).fill(null), justif:Array(CE_QS.length).fill(""), confirmed:Array(CE_QS.length).fill(false), wrong:[], mode:"all" };
+    let cl_state = { idx:0, inputs:CL_QS.map(q=>Array(q.lacunas.length).fill("")), confirmed:Array(CL_QS.length).fill(false) };
+    let def_state = { idx:0, inputs:Array(DEF_QS.length).fill(""), confirmed:Array(DEF_QS.length).fill(false), retake:[] };
+    let cor_state = { idx:0, answers:COR_SETS.map(s=>Array(s.esquerda.length).fill("")), confirmed:Array(COR_SETS.length).fill(false), retake:[] };
+    let cite_state = { idx:0, inputs:Array(CITE_QS.length).fill(""), confirmed:Array(CITE_QS.length).fill(false), retake:[] };
+    let liste_state = { idx:0, inputs:Array(LISTE_QS.length).fill(""), confirmed:Array(LISTE_QS.length).fill(false), retake:[] };
+    let vf_state = { idx:0, chosen:Array(VF_QS.length).fill(null), confirmed:Array(VF_QS.length).fill(false), wrong:[], mode:"all" };
+    let fc_state = { idx:0, startIdx:0, sabidos:[], naosabidos:[], modo:"all" };
+    let busca_query = "";
+
+    /* ═══ COMPONENTES UTILITÁRIOS ═══ */
+    function BtnNav({label,ativo,onClick}){return(<button onClick={onClick} style={{padding:"6px 10px",margin:"2px",fontSize:"12px",cursor:"pointer",background:ativo?"#1a8cff":"#1e2a3a",color:ativo?"#fff":"#8ca0b8",border:ativo?"2px solid #1a8cff":"2px solid #2d3e52",borderRadius:"6px",fontWeight:ativo?"bold":"normal"}}>{label}</button>);}
+    function Card({children,style}){return<div style={{background:"#14203a",border:"1px solid #2a3f5c",borderRadius:"10px",padding:"18px",marginBottom:"14px",...style}}>{children}</div>;}
+    function Btn({children,onClick,variant="primary",style}){const c={primary:"#1a8cff",success:"#00c97f",danger:"#ff5252",warn:"#ffaa00",ghost:"#2d3e52"};return(<button onClick={onClick} style={{background:c[variant]||c.primary,color:"#fff",border:"none",borderRadius:"7px",padding:"8px 16px",cursor:"pointer",fontSize:"13px",fontWeight:"bold",margin:"4px",...style}}>{children}</button>);}
+    function Progresso({atual,total}){return(<div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"10px"}}><div style={{flex:1,height:"6px",background:"#2d3e52",borderRadius:"3px"}}><div style={{width:`${(atual/total)*100}%`,height:"100%",background:"#1a8cff",borderRadius:"3px",transition:"width .3s"}}/></div><span style={{color:"#8ca0b8",fontSize:"12px"}}>{atual}/{total}</span></div>);}
+
+    /* ═══ TELAS ═══ */
+
+    function TelaMultiplaEscolha({refresh}){
+      const st=mc_state;
+      const list=st.mode==="wrong"?st.wrong:Array.from({length:MC_QS.length},(_,i)=>i);
+      const qi=list[st.idx]??0; const q=MC_QS[qi];
+      function choose(i){if(st.confirmed[qi])return;st.chosen[qi]=i;refresh();}
+      function confirm(){if(st.chosen[qi]===null)return;st.confirmed[qi]=true;if(st.chosen[qi]!==q.ans&&!st.wrong.includes(qi))st.wrong.push(qi);refresh();}
+      function prev(){if(st.idx>0){st.idx--;refresh();}}
+      function next(){if(st.idx<list.length-1){st.idx++;refresh();}}
+      function refazer(){st.wrong.forEach(i=>{st.confirmed[i]=false;st.chosen[i]=null;});st.mode="wrong";st.idx=0;refresh();}
+      function reset(){mc_state={idx:0,chosen:Array(MC_QS.length).fill(null),confirmed:Array(MC_QS.length).fill(false),wrong:[],mode:"all"};refresh();}
+      const conf=st.confirmed[qi]; const acertou=conf&&st.chosen[qi]===q.ans;
+      return(<div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"12px"}}>
+          <h2 style={{color:"#1a8cff",margin:0}}>🎯 Múltipla Escolha</h2>
+          <button onClick={reset} style={{background:"#2d3e52",color:"#8ca0b8",border:"none",borderRadius:"5px",padding:"4px 10px",cursor:"pointer",fontSize:"12px"}}>↺ Reiniciar</button>
+        </div>
+        <Progresso atual={st.idx+1} total={list.length}/>
+        <Card>
+          <p style={{color:"#c8d8e8",lineHeight:1.7,marginBottom:"16px"}}><strong style={{color:"#8ca0b8"}}>Q{st.idx+1}.</strong> {q.q}</p>
+          {[0,1,2,3,4].map(i=>{
+            let bg="#1e2a3a",border="#2d3e52",col="#c8d8e8";
+            if(conf){if(i===q.ans){bg="#003300";border="#00c97f";col="#00c97f";}else if(i===st.chosen[qi]){bg="#330000";border="#ff5252";col="#ff5252";}}
+            else if(st.chosen[qi]===i){bg="#1a3a5c";border="#1a8cff";col="#fff";}
+            return(<div key={i} onClick={()=>choose(i)} style={{background:bg,border:`2px solid ${border}`,color:col,borderRadius:"8px",padding:"10px 14px",marginBottom:"8px",cursor:conf?"default":"pointer"}}><span style={{fontWeight:"bold",marginRight:"8px"}}>{String.fromCharCode(65+i)})</span>{q.opts[i]}</div>);
+          })}
+          <div style={{display:conf?"block":"none",background:"#0a2a1a",borderRadius:"8px",padding:"12px",marginTop:"8px",border:"1px solid #00c97f"}}>
+            <p style={{color:acertou?"#00c97f":"#ff5252",margin:0}}>{acertou?"✅ CORRETO!":"❌ ERRADO!"}</p>
+            <p style={{color:"#ffaa00",fontSize:"13px",marginTop:"8px"}}>💡 {q.mem}</p>
+          </div>
+          {!conf&&<p style={{color:"#8ca0b8",fontSize:"12px",marginTop:"10px"}}>💡 Dica: {q.hint}</p>}
+        </Card>
+        <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
+          <Btn onClick={prev} variant="ghost">◀ Anterior</Btn>
+          {!conf&&<Btn onClick={confirm} variant="success">✓ Confirmar</Btn>}
+          {conf&&<Btn onClick={next} variant="primary">Próxima ▶</Btn>}
+          {st.wrong.length>0&&<Btn onClick={refazer} variant="warn">↺ Refazer Erradas ({st.wrong.length})</Btn>}
+        </div>
+      </div>);
+    }
+
+    function TelaCertoErrado({refresh}){
+      const st=ce_state;
+      const list=st.mode==="wrong"?st.wrong:Array.from({length:CE_QS.length},(_,i)=>i);
+      const qi=list[st.idx]??0; const q=CE_QS[qi];
+      function choose(v){if(st.confirmed[qi])return;st.chosen[qi]=v;refresh();}
+      function confirm(){if(st.chosen[qi]===null)return;st.confirmed[qi]=true;if(st.chosen[qi]!==q.ans&&!st.wrong.includes(qi))st.wrong.push(qi);refresh();}
+      function prev(){if(st.idx>0){st.idx--;refresh();}}
+      function next(){if(st.idx<list.length-1){st.idx++;refresh();}}
+      function refazer(){st.wrong.forEach(i=>{st.confirmed[i]=false;st.chosen[i]=null;st.justif[i]="";});st.mode="wrong";st.idx=0;refresh();}
+      const conf=st.confirmed[qi]; const acertou=conf&&st.chosen[qi]===q.ans;
+      return(<div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"12px"}}>
+          <h2 style={{color:"#00c97f",margin:0}}>✅ Certo ou Errado</h2>
+          <button onClick={()=>{ce_state={idx:0,chosen:Array(CE_QS.length).fill(null),justif:Array(CE_QS.length).fill(""),confirmed:Array(CE_QS.length).fill(false),wrong:[],mode:"all"};refresh();}} style={{background:"#2d3e52",color:"#8ca0b8",border:"none",borderRadius:"5px",padding:"4px 10px",cursor:"pointer",fontSize:"12px"}}>↺ Reiniciar</button>
+        </div>
+        <Progresso atual={st.idx+1} total={list.length}/>
+        <Card>
+          <p style={{color:"#c8d8e8",lineHeight:1.7}}><strong style={{color:"#8ca0b8"}}>Q{st.idx+1}.</strong> {q.q}</p>
+          <div style={{display:"flex",gap:"10px",marginTop:"8px"}}>
+            {[true,false].map(v=>(<div key={String(v)} onClick={()=>choose(v)} style={{flex:1,padding:"12px",textAlign:"center",borderRadius:"8px",cursor:conf?"default":"pointer",background:conf?(v===q.ans?"#003300":(v===st.chosen[qi]?"#330000":"#1e2a3a")):(st.chosen[qi]===v?"#1a3a5c":"#1e2a3a"),border:conf?(v===q.ans?"2px solid #00c97f":(v===st.chosen[qi]?"2px solid #ff5252":"2px solid #2d3e52")):(st.chosen[qi]===v?"2px solid #1a8cff":"2px solid #2d3e52"),color:"#fff",fontSize:"18px",fontWeight:"bold"}}>{v?"✅ CERTO":"❌ ERRADO"}</div>))}
+          </div>
+          {st.chosen[qi]===false&&!conf&&(<div style={{marginTop:"10px"}}><p style={{color:"#8ca0b8",fontSize:"13px"}}>Justifique por que é ERRADO:</p><textarea value={st.justif[qi]} onChange={e=>{st.justif[qi]=e.target.value;refresh();}} placeholder="Escreva sua justificativa..." style={{width:"100%",padding:"8px",background:"#1e2a3a",color:"#c8d8e8",border:"1px solid #2d3e52",borderRadius:"6px",minHeight:"60px",fontSize:"13px",boxSizing:"border-box"}}/></div>)}
+          {conf&&(<div><div style={{background:acertou?"#0a2a1a":"#2a0a0a",borderRadius:"8px",padding:"12px",marginTop:"8px",border:`1px solid ${acertou?"#00c97f":"#ff5252"}`}}><p style={{color:acertou?"#00c97f":"#ff5252",margin:0}}>{acertou?"✅ CORRETO!":"❌ ERRADO — resposta: "+(q.ans?"CERTO":"ERRADO")}</p><p style={{color:"#c8d8e8",fontSize:"13px",marginTop:"8px"}}>{q.justificativa}</p><p style={{color:"#ffaa00",fontSize:"13px",marginTop:"6px"}}>💡 {q.mem}</p></div>{st.chosen[qi]===false&&st.justif[qi]&&(<div style={{background:"#1a2a3a",borderRadius:"8px",padding:"10px",marginTop:"6px"}}><p style={{color:"#8ca0b8",fontSize:"12px",margin:0}}>Sua justificativa: "{st.justif[qi]}"</p></div>)}</div>)}
+          {!conf&&<p style={{color:"#8ca0b8",fontSize:"12px",marginTop:"8px"}}>💡 Dica: {q.hint}</p>}
+        </Card>
+        <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
+          <Btn onClick={prev} variant="ghost">◀ Anterior</Btn>
+          {!conf&&<Btn onClick={confirm} variant="success">✓ Confirmar</Btn>}
+          {conf&&<Btn onClick={next} variant="primary">Próxima ▶</Btn>}
+          {st.wrong.length>0&&<Btn onClick={refazer} variant="warn">↺ Refazer Erradas ({st.wrong.length})</Btn>}
+        </div>
+      </div>);
+    }
+
+    function TelaCompleteLacunas({refresh}){
+      const st=cl_state; const q=CL_QS[st.idx]; const conf=st.confirmed[st.idx];
+      return(<div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"12px"}}>
+          <h2 style={{color:"#ffaa00",margin:0}}>✏️ Complete as Lacunas</h2>
+          <button onClick={()=>{cl_state={idx:0,inputs:CL_QS.map(q=>Array(q.lacunas.length).fill("")),confirmed:Array(CL_QS.length).fill(false)};refresh();}} style={{background:"#2d3e52",color:"#8ca0b8",border:"none",borderRadius:"5px",padding:"4px 10px",cursor:"pointer",fontSize:"12px"}}>↺ Reiniciar</button>
+        </div>
+        <Progresso atual={st.idx+1} total={CL_QS.length}/>
+        <Card>
+          <p style={{color:"#c8d8e8",lineHeight:1.8,marginBottom:"12px"}}>{q.q}</p>
+          {q.lacunas.map((_,li)=>(<div key={li} style={{marginTop:"10px"}}>
+            <p style={{color:"#8ca0b8",fontSize:"12px",margin:"0 0 4px"}}>Lacuna {li+1}:</p>
+            <input value={(cl_state.inputs[st.idx]||[])[li]||""} disabled={conf} onChange={e=>{if(!cl_state.inputs[st.idx])cl_state.inputs[st.idx]=Array(q.lacunas.length).fill("");cl_state.inputs[st.idx][li]=e.target.value;refresh();}} style={{width:"100%",padding:"8px",background:conf?"#1a2a1a":"#1e2a3a",color:"#c8d8e8",border:"1px solid #2d3e52",borderRadius:"6px",fontSize:"13px",boxSizing:"border-box"}} placeholder={`Lacuna ${li+1}...`}/>
+            {conf&&<p style={{color:"#00c97f",fontSize:"12px",margin:"4px 0 0"}}>✅ Gabarito: <strong>{q.lacunas[li]}</strong></p>}
+          </div>))}
+          {conf&&<div style={{background:"#0a1a2a",borderRadius:"8px",padding:"12px",marginTop:"12px",border:"1px solid #1a8cff"}}><p style={{color:"#ffaa00",fontSize:"13px",margin:0}}>💡 {q.mem}</p></div>}
+          {!conf&&<p style={{color:"#8ca0b8",fontSize:"12px",marginTop:"10px"}}>💡 {q.hint}</p>}
+        </Card>
+        <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
+          <Btn onClick={()=>{if(st.idx>0){st.idx--;refresh();}}} variant="ghost">◀ Anterior</Btn>
+          {!conf&&<Btn onClick={()=>{st.confirmed[st.idx]=true;refresh();}} variant="success">✓ Confirmar</Btn>}
+          {conf&&<Btn onClick={()=>{if(st.idx<CL_QS.length-1){st.idx++;refresh();}}} variant="primary">Próxima ▶</Btn>}
+        </div>
+      </div>);
+    }
+
+    function TelaDefinicoes({refresh}){
+      const st=def_state;
+      const list=st.retake.length>0?st.retake:Array.from({length:DEF_QS.length},(_,i)=>i);
+      const qi=list[st.idx]??0; const q=DEF_QS[qi]; const conf=st.confirmed[qi];
+      return(<div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"12px"}}>
+          <h2 style={{color:"#b44fff",margin:0}}>📖 Definições</h2>
+          <button onClick={()=>{def_state={idx:0,inputs:Array(DEF_QS.length).fill(""),confirmed:Array(DEF_QS.length).fill(false),retake:[]};refresh();}} style={{background:"#2d3e52",color:"#8ca0b8",border:"none",borderRadius:"5px",padding:"4px 10px",cursor:"pointer",fontSize:"12px"}}>↺ Reiniciar</button>
+        </div>
+        <Progresso atual={st.idx+1} total={list.length}/>
+        <Card>
+          <p style={{color:"#b44fff",fontWeight:"bold",fontSize:"16px",marginBottom:"10px"}}>Termo: <span style={{color:"#fff"}}>{q.termo}</span></p>
+          <textarea value={st.inputs[qi]} disabled={conf} onChange={e=>{st.inputs[qi]=e.target.value;refresh();}} placeholder="Escreva a definição..." style={{width:"100%",padding:"10px",background:conf?"#1a2a1a":"#1e2a3a",color:"#c8d8e8",border:"1px solid #2d3e52",borderRadius:"6px",minHeight:"80px",fontSize:"13px",boxSizing:"border-box"}}/>
+          {conf&&(<div style={{marginTop:"12px"}}>
+            <div style={{background:"#0a2a1a",borderRadius:"8px",padding:"12px",border:"1px solid #00c97f",marginBottom:"8px"}}><p style={{color:"#00c97f",fontWeight:"bold",margin:"0 0 6px"}}>📋 Gabarito:</p><p style={{color:"#c8d8e8",fontSize:"13px",margin:0,lineHeight:1.6}}>{q.gabarito}</p></div>
+            <div style={{background:"#1a3a1a",borderRadius:"8px",padding:"10px",border:"1px solid #00c97f",marginBottom:"8px"}}><p style={{color:"#ffaa00",fontSize:"12px",margin:0}}>⚡ {q.resumido}</p></div>
+            <p style={{color:"#8ca0b8",fontSize:"12px"}}>Sua resposta foi mantida. Compare com o gabarito!</p>
+          </div>)}
+          {!conf&&<p style={{color:"#8ca0b8",fontSize:"12px",marginTop:"10px"}}>💡 {q.hint}</p>}
+        </Card>
+        <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
+          <Btn onClick={()=>{if(st.idx>0){st.idx--;refresh();}}} variant="ghost">◀ Anterior</Btn>
+          {!conf&&<Btn onClick={()=>{st.confirmed[qi]=true;refresh();}} variant="success">✓ Confirmar</Btn>}
+          {conf&&<Btn onClick={()=>{if(!st.retake.includes(qi))st.retake.push(qi);refresh();}} variant="warn">📌 Refazer esta</Btn>}
+          {conf&&<Btn onClick={()=>{if(st.idx<list.length-1){st.idx++;refresh();}}} variant="primary">Próxima ▶</Btn>}
+          {st.retake.length>0&&<Btn onClick={()=>{st.retake.forEach(i=>{st.confirmed[i]=false;st.inputs[i]="";});st.idx=0;refresh();}} variant="danger">↺ Refazer ({st.retake.length})</Btn>}
+        </div>
+      </div>);
+    }
+
+    function TelaCorrelacione({refresh}){
+      const st=cor_state;
+      const list=st.retake.length>0?st.retake:Array.from({length:COR_SETS.length},(_,i)=>i);
+      const si=list[st.idx]??0; const set=COR_SETS[si]; const conf=st.confirmed[si];
+      if(!cor_state.answers[si])cor_state.answers[si]=Array(set.esquerda.length).fill("");
+      return(<div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"12px"}}>
+          <h2 style={{color:"#ff7f50",margin:0}}>🔗 Correlacione</h2>
+          <button onClick={()=>{cor_state={idx:0,answers:COR_SETS.map(s=>Array(s.esquerda.length).fill("")),confirmed:Array(COR_SETS.length).fill(false),retake:[]};refresh();}} style={{background:"#2d3e52",color:"#8ca0b8",border:"none",borderRadius:"5px",padding:"4px 10px",cursor:"pointer",fontSize:"12px"}}>↺ Reiniciar</button>
+        </div>
+        <Progresso atual={st.idx+1} total={list.length}/>
+        <Card>
+          <p style={{color:"#ff7f50",fontWeight:"bold",marginBottom:"12px"}}>{set.titulo}</p>
+          {set.direita.map((d,i)=>(<div key={i} style={{background:"#0a1a2a",borderRadius:"6px",padding:"8px 12px",marginBottom:"6px",border:"1px solid #2d3e52"}}><span style={{color:"#8ca0b8",fontSize:"11px"}}>[{String.fromCharCode(65+i)}] </span><span style={{color:"#c8d8e8",fontSize:"12px"}}>{d}</span></div>))}
+          <div style={{marginTop:"14px"}}>
+            {set.esquerda.map((e,i)=>{
+              const ans=cor_state.answers[si][i];
+              const correct=conf&&String(set.gabarito[i])===ans;
+              const wrong=conf&&String(set.gabarito[i])!==ans;
+              return(<div key={i} style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"10px",padding:"8px",background:conf?(correct?"#003300":wrong?"#330000":"#1e2a3a"):"#1e2a3a",borderRadius:"8px",border:`1px solid ${conf?(correct?"#00c97f":wrong?"#ff5252":"#2d3e52"):"#2d3e52"}`}}>
+                <span style={{color:"#1a8cff",minWidth:"160px",fontSize:"13px"}}>{e}</span>
+                <select value={ans} disabled={conf} onChange={ev=>{cor_state.answers[si][i]=ev.target.value;refresh();}} style={{background:"#1a2a3a",color:"#fff",border:"1px solid #2d3e52",borderRadius:"5px",padding:"4px 8px",fontSize:"13px"}}>
+                  <option value="">-- Escolha --</option>
+                  <option value="-">– (distrator)</option>
+                  {set.esquerda.map((_,n)=><option key={n} value={String(n+1)}>{n+1}</option>)}
+                </select>
+                {conf&&<span style={{color:correct?"#00c97f":"#ff5252",fontSize:"12px"}}>{correct?"✅":`❌ → ${set.gabarito[i]}`}</span>}
+              </div>);
+            })}
+          </div>
+          {!conf&&<p style={{color:"#8ca0b8",fontSize:"12px",marginTop:"10px"}}>💡 {set.hint}</p>}
+          {conf&&<div style={{background:"#1a2a3a",borderRadius:"8px",padding:"10px",marginTop:"8px",border:"1px solid #ffaa00"}}><p style={{color:"#ffaa00",fontSize:"13px",margin:0}}>💡 {set.hint}</p></div>}
+        </Card>
+        <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
+          <Btn onClick={()=>{if(st.idx>0){st.idx--;refresh();}}} variant="ghost">◀ Anterior</Btn>
+          {!conf&&<Btn onClick={()=>{st.confirmed[si]=true;refresh();}} variant="success">✓ Confirmar</Btn>}
+          {conf&&<Btn onClick={()=>{if(!st.retake.includes(si))st.retake.push(si);refresh();}} variant="warn">📌 Refazer</Btn>}
+          {conf&&<Btn onClick={()=>{if(st.idx<list.length-1){st.idx++;refresh();}}} variant="primary">Próximo ▶</Btn>}
+          {st.retake.length>0&&<Btn onClick={()=>{st.retake.forEach(i=>{st.confirmed[i]=false;cor_state.answers[i]=Array(COR_SETS[i].esquerda.length).fill("");});st.idx=0;refresh();}} variant="danger">↺ Refazer ({st.retake.length})</Btn>}
+        </div>
+      </div>);
+    }
+
+    function TelaCite({refresh}){
+      const st=cite_state;
+      const list=st.retake.length>0?st.retake:Array.from({length:CITE_QS.length},(_,i)=>i);
+      const qi=list[st.idx]??0; const q=CITE_QS[qi]; const conf=st.confirmed[qi];
+      return(<div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"12px"}}>
+          <h2 style={{color:"#00c97f",margin:0}}>🗣️ Cite</h2>
+          <button onClick={()=>{cite_state={idx:0,inputs:Array(CITE_QS.length).fill(""),confirmed:Array(CITE_QS.length).fill(false),retake:[]};refresh();}} style={{background:"#2d3e52",color:"#8ca0b8",border:"none",borderRadius:"5px",padding:"4px 10px",cursor:"pointer",fontSize:"12px"}}>↺ Reiniciar</button>
+        </div>
+        <Progresso atual={st.idx+1} total={list.length}/>
+        <Card>
+          <p style={{color:"#c8d8e8",lineHeight:1.7,marginBottom:"10px"}}><strong style={{color:"#8ca0b8"}}>Q{st.idx+1}.</strong> {q.q}</p>
+          <textarea value={st.inputs[qi]} disabled={conf} onChange={e=>{st.inputs[qi]=e.target.value;refresh();}} placeholder="Cite os itens..." style={{width:"100%",padding:"10px",background:conf?"#1a2a1a":"#1e2a3a",color:"#c8d8e8",border:"1px solid #2d3e52",borderRadius:"6px",minHeight:"80px",fontSize:"13px",boxSizing:"border-box"}}/>
+          {conf&&(<div style={{marginTop:"10px"}}>
+            <div style={{background:"#0a2a1a",borderRadius:"8px",padding:"12px",border:"1px solid #00c97f",marginBottom:"8px"}}><p style={{color:"#00c97f",fontWeight:"bold",margin:"0 0 6px"}}>✅ Gabarito:</p><pre style={{color:"#c8d8e8",fontSize:"13px",margin:0,whiteSpace:"pre-wrap"}}>{q.gabarito}</pre></div>
+            <div style={{background:"#1a3a1a",borderRadius:"8px",padding:"10px",border:"1px solid #ffaa00"}}><p style={{color:"#ffaa00",fontSize:"12px",margin:0}}>⚡ {q.resumido}</p></div>
+          </div>)}
+          {!conf&&<p style={{color:"#8ca0b8",fontSize:"12px",marginTop:"10px"}}>💡 {q.hint}</p>}
+        </Card>
+        <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
+          <Btn onClick={()=>{if(st.idx>0){st.idx--;refresh();}}} variant="ghost">◀ Anterior</Btn>
+          {!conf&&<Btn onClick={()=>{st.confirmed[qi]=true;refresh();}} variant="success">✓ Confirmar</Btn>}
+          {conf&&<Btn onClick={()=>{if(!st.retake.includes(qi))st.retake.push(qi);refresh();}} variant="warn">📌 Refazer</Btn>}
+          {conf&&<Btn onClick={()=>{if(st.idx<list.length-1){st.idx++;refresh();}}} variant="primary">Próxima ▶</Btn>}
+          {st.retake.length>0&&<Btn onClick={()=>{st.retake.forEach(i=>{st.confirmed[i]=false;st.inputs[i]="";});st.idx=0;refresh();}} variant="danger">↺ Refazer ({st.retake.length})</Btn>}
+        </div>
+      </div>);
+    }
+
+    function TelaListe({refresh}){
+      const st=liste_state;
+      const list=st.retake.length>0?st.retake:Array.from({length:LISTE_QS.length},(_,i)=>i);
+      const qi=list[st.idx]??0; const q=LISTE_QS[qi]; const conf=st.confirmed[qi];
+      return(<div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"12px"}}>
+          <h2 style={{color:"#b44fff",margin:0}}>📋 Liste</h2>
+          <button onClick={()=>{liste_state={idx:0,inputs:Array(LISTE_QS.length).fill(""),confirmed:Array(LISTE_QS.length).fill(false),retake:[]};refresh();}} style={{background:"#2d3e52",color:"#8ca0b8",border:"none",borderRadius:"5px",padding:"4px 10px",cursor:"pointer",fontSize:"12px"}}>↺ Reiniciar</button>
+        </div>
+        <Progresso atual={st.idx+1} total={list.length}/>
+        <Card>
+          <p style={{color:"#c8d8e8",lineHeight:1.7,marginBottom:"10px"}}><strong style={{color:"#8ca0b8"}}>Q{st.idx+1}.</strong> {q.q}</p>
+          <textarea value={st.inputs[qi]} disabled={conf} onChange={e=>{st.inputs[qi]=e.target.value;refresh();}} placeholder="Liste os itens (um por linha)..." style={{width:"100%",padding:"10px",background:conf?"#1a2a1a":"#1e2a3a",color:"#c8d8e8",border:"1px solid #2d3e52",borderRadius:"6px",minHeight:"80px",fontSize:"13px",boxSizing:"border-box"}}/>
+          {conf&&(<div style={{marginTop:"10px"}}>
+            <div style={{background:"#0a2a1a",borderRadius:"8px",padding:"12px",border:"1px solid #00c97f",marginBottom:"8px"}}><p style={{color:"#00c97f",fontWeight:"bold",margin:"0 0 6px"}}>✅ Gabarito:</p><pre style={{color:"#c8d8e8",fontSize:"13px",margin:0,whiteSpace:"pre-wrap"}}>{q.gabarito}</pre></div>
+            <div style={{background:"#1a3a1a",borderRadius:"8px",padding:"10px",border:"1px solid #ffaa00"}}><p style={{color:"#ffaa00",fontSize:"12px",margin:0}}>⚡ {q.resumido}</p></div>
+          </div>)}
+          {!conf&&<p style={{color:"#8ca0b8",fontSize:"12px",marginTop:"10px"}}>💡 {q.hint}</p>}
+        </Card>
+        <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
+          <Btn onClick={()=>{if(st.idx>0){st.idx--;refresh();}}} variant="ghost">◀ Anterior</Btn>
+          {!conf&&<Btn onClick={()=>{st.confirmed[qi]=true;refresh();}} variant="success">✓ Confirmar</Btn>}
+          {conf&&<Btn onClick={()=>{if(!st.retake.includes(qi))st.retake.push(qi);refresh();}} variant="warn">📌 Refazer</Btn>}
+          {conf&&<Btn onClick={()=>{if(st.idx<list.length-1){st.idx++;refresh();}}} variant="primary">Próxima ▶</Btn>}
+          {st.retake.length>0&&<Btn onClick={()=>{st.retake.forEach(i=>{st.confirmed[i]=false;st.inputs[i]="";});st.idx=0;refresh();}} variant="danger">↺ Refazer ({st.retake.length})</Btn>}
+        </div>
+      </div>);
+    }
+
+    function TelaVF({refresh}){
+      const st=vf_state;
+      const list=st.wrong.length>0&&st.mode==="wrong"?st.wrong:Array.from({length:VF_QS.length},(_,i)=>i);
+      const qi=list[st.idx]??0; const q=VF_QS[qi]; const conf=st.confirmed[qi];
+      function choose(v){if(conf)return;st.chosen[qi]=v;refresh();}
+      function confirm(){if(st.chosen[qi]===null)return;st.confirmed[qi]=true;if(st.chosen[qi]!==q.ans&&!st.wrong.includes(qi))st.wrong.push(qi);refresh();}
+      const acertou=conf&&st.chosen[qi]===q.ans;
+      return(<div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"12px"}}>
+          <h2 style={{color:"#1a8cff",margin:0}}>🔵 Verdadeiro ou Falso</h2>
+          <button onClick={()=>{vf_state={idx:0,chosen:Array(VF_QS.length).fill(null),confirmed:Array(VF_QS.length).fill(false),wrong:[],mode:"all"};refresh();}} style={{background:"#2d3e52",color:"#8ca0b8",border:"none",borderRadius:"5px",padding:"4px 10px",cursor:"pointer",fontSize:"12px"}}>↺ Reiniciar</button>
+        </div>
+        <Progresso atual={st.idx+1} total={list.length}/>
+        <Card>
+          <p style={{color:"#c8d8e8",lineHeight:1.7}}><strong style={{color:"#8ca0b8"}}>Q{st.idx+1}.</strong> {q.q}</p>
+          <div style={{display:"flex",gap:"10px",marginTop:"12px"}}>
+            {[true,false].map(v=>(<div key={String(v)} onClick={()=>choose(v)} style={{flex:1,padding:"12px",textAlign:"center",borderRadius:"8px",cursor:conf?"default":"pointer",background:conf?(v===q.ans?"#003300":(v===st.chosen[qi]?"#330000":"#1e2a3a")):(st.chosen[qi]===v?"#1a3a5c":"#1e2a3a"),border:conf?(v===q.ans?"2px solid #00c97f":(v===st.chosen[qi]?"2px solid #ff5252":"2px solid #2d3e52")):(st.chosen[qi]===v?"2px solid #1a8cff":"2px solid #2d3e52"),color:"#fff",fontSize:"16px",fontWeight:"bold"}}>{v?"✅ V":"❌ F"}</div>))}
+          </div>
+          {conf&&<div style={{marginTop:"12px",background:acertou?"#0a2a1a":"#2a0a0a",borderRadius:"8px",padding:"12px",border:`1px solid ${acertou?"#00c97f":"#ff5252"}`}}><p style={{color:acertou?"#00c97f":"#ff5252",margin:0}}>{acertou?"✅ CORRETO!":"❌ ERRADO — Resposta: "+(q.ans?"VERDADEIRO":"FALSO")}</p><p style={{color:"#ffaa00",fontSize:"13px",marginTop:"8px"}}>💡 {q.mem}</p></div>}
+          {!conf&&<p style={{color:"#8ca0b8",fontSize:"12px",marginTop:"10px"}}>💡 {q.hint}</p>}
+        </Card>
+        <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
+          <Btn onClick={()=>{if(st.idx>0){st.idx--;refresh();}}} variant="ghost">◀ Anterior</Btn>
+          {!conf&&<Btn onClick={confirm} variant="success">✓ Confirmar</Btn>}
+          {conf&&<Btn onClick={()=>{if(st.idx<list.length-1){st.idx++;refresh();}}} variant="primary">Próxima ▶</Btn>}
+          {st.wrong.length>0&&<Btn onClick={()=>{st.wrong.forEach(i=>{st.confirmed[i]=false;st.chosen[i]=null;});vf_state.mode="wrong";st.idx=0;refresh();}} variant="warn">↺ Refazer Erradas ({st.wrong.length})</Btn>}
+        </div>
+      </div>);
+    }
+
+    function TelaFlashcards({refresh}){
+      const [virado,setVirado]=useState(false);
+      const [startInput,setStartInput]=useState(String(fc_state.startIdx+1));
+      const st=fc_state;
+      const list=st.modo==="naosabido"?st.naosabidos:Array.from({length:FLASHCARDS.length},(_,i)=>i);
+      const qi=list[st.idx]??0; const card=FLASHCARDS[qi];
+      return(<div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"12px"}}>
+          <h2 style={{color:"#ffaa00",margin:0}}>🃏 Flashcards</h2>
+          <button onClick={()=>{fc_state={idx:0,startIdx:0,sabidos:[],naosabidos:[],modo:"all"};setVirado(false);setStartInput("1");refresh();}} style={{background:"#2d3e52",color:"#8ca0b8",border:"none",borderRadius:"5px",padding:"4px 10px",cursor:"pointer",fontSize:"12px"}}>↺ Reiniciar</button>
+        </div>
+        <div style={{display:"flex",gap:"8px",alignItems:"center",marginBottom:"12px"}}>
+          <span style={{color:"#8ca0b8",fontSize:"13px"}}>Iniciar do card:</span>
+          <input type="number" value={startInput} onChange={e=>setStartInput(e.target.value)} min="1" max={FLASHCARDS.length} style={{width:"60px",padding:"4px",background:"#1e2a3a",color:"#fff",border:"1px solid #2d3e52",borderRadius:"5px",fontSize:"13px"}}/>
+          <Btn onClick={()=>{const n=parseInt(startInput)-1;if(n>=0&&n<FLASHCARDS.length){st.idx=n;st.startIdx=n;setVirado(false);refresh();}}} variant="ghost">Ir</Btn>
+        </div>
+        <Progresso atual={st.idx+1} total={list.length}/>
+        <div onClick={()=>setVirado(v=>!v)} style={{cursor:"pointer",minHeight:"200px",background:"#14203a",border:"2px solid #ffaa00",borderRadius:"12px",padding:"24px",marginBottom:"14px",display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",textAlign:"center"}}>
+          {!virado?(<div><p style={{color:"#8ca0b8",fontSize:"12px",marginBottom:"10px"}}>FRENTE — clique para virar</p><p style={{color:"#ffaa00",fontSize:"15px",fontWeight:"bold",lineHeight:1.6}}>{card.frente}</p><p style={{color:"#8ca0b8",fontSize:"12px",marginTop:"12px"}}>💡 {card.hint}</p></div>):(<div><p style={{color:"#8ca0b8",fontSize:"12px",marginBottom:"10px"}}>VERSO — resposta</p><pre style={{color:"#c8d8e8",fontSize:"13px",lineHeight:1.7,whiteSpace:"pre-wrap",textAlign:"left",margin:0}}>{card.verso}</pre><div style={{background:"#1a2a3a",borderRadius:"8px",padding:"10px",marginTop:"12px",border:"1px solid #ffaa00"}}><p style={{color:"#ffaa00",fontSize:"12px",margin:0}}>🧠 {card.mem}</p></div></div>)}
+        </div>
+        <div style={{display:"flex",flexWrap:"wrap",gap:"6px",justifyContent:"center"}}>
+          <Btn onClick={()=>{if(st.idx>0){st.idx--;setVirado(false);refresh();}}} variant="ghost">◀ Anterior</Btn>
+          <Btn onClick={()=>setVirado(v=>!v)} variant="warn">{virado?"← Frente":"Virar →"}</Btn>
+          {virado&&<Btn onClick={()=>{if(!st.sabidos.includes(qi))st.sabidos.push(qi);setVirado(false);if(st.idx<list.length-1){st.idx++;refresh();}}} variant="success">✅ Sabia</Btn>}
+          {virado&&<Btn onClick={()=>{if(!st.naosabidos.includes(qi))st.naosabidos.push(qi);setVirado(false);if(st.idx<list.length-1){st.idx++;refresh();}}} variant="danger">❌ Não Sabia</Btn>}
+          {st.naosabidos.length>0&&<Btn onClick={()=>{st.modo="naosabido";st.idx=0;setVirado(false);refresh();}} variant="warn">👁️ Rever Não Sabia ({st.naosabidos.length})</Btn>}
+        </div>
+        <div style={{marginTop:"12px",display:"flex",gap:"12px",justifyContent:"center"}}>
+          <span style={{color:"#00c97f",fontSize:"12px"}}>✅ Sabia: {st.sabidos.length}</span>
+          <span style={{color:"#ff5252",fontSize:"12px"}}>❌ Não Sabia: {st.naosabidos.length}</span>
+        </div>
+      </div>);
+    }
+
+    function TelaMapaMental(){
+      const [expandido,setExpandido]=useState({});
+      const [detalhe,setDetalhe]=useState(null);
+      return(<div>
+        <h2 style={{color:"#1a8cff",marginBottom:"6px"}}>🗺️ Mapa Mental Interativo</h2>
+        <p style={{color:"#8ca0b8",fontSize:"12px",marginBottom:"16px"}}>Clique nos ramos para expandir. Clique nos nós filhos para ver detalhes.</p>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"10px"}}>
+          <div style={{background:"linear-gradient(135deg,#1a8cff,#004c99)",borderRadius:"50px",padding:"14px 28px",color:"#fff",fontWeight:"bold",fontSize:"16px",boxShadow:"0 4px 20px rgba(26,140,255,0.4)"}}>⚓ {MAPA_MENTAL.centro}</div>
+          {MAPA_MENTAL.ramos.map((ramo,i)=>(<div key={i} style={{width:"100%",maxWidth:"600px"}}>
+            <div onClick={()=>{setExpandido(e=>({...e,[i]:!e[i]}));setDetalhe(null);}} style={{background:`${ramo.cor}22`,border:`2px solid ${ramo.cor}`,borderRadius:"10px",padding:"12px 16px",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center",color:ramo.cor,fontWeight:"bold",fontSize:"14px"}}>
+              <span>{ramo.label}</span><span>{expandido[i]?"▼":"▶"}</span>
+            </div>
+            {expandido[i]&&(<div style={{display:"flex",flexWrap:"wrap",gap:"8px",padding:"10px 0 0 16px"}}>
+              {ramo.filhos.map((f,fi)=>(<div key={fi} onClick={()=>setDetalhe(detalhe&&detalhe.ramo===i&&detalhe.fi===fi?null:{ramo:i,fi})} style={{background:detalhe&&detalhe.ramo===i&&detalhe.fi===fi?`${ramo.cor}33`:"#1e2a3a",border:`1px solid ${ramo.cor}`,borderRadius:"8px",padding:"8px 12px",cursor:"pointer",color:ramo.cor,fontSize:"12px",fontWeight:"bold",maxWidth:"180px"}}>📌 {f.label}</div>))}
+            </div>)}
+            {expandido[i]&&detalhe&&detalhe.ramo===i&&(<div style={{background:"#0a1a2a",borderRadius:"8px",padding:"14px",marginTop:"8px",border:`1px solid ${ramo.cor}`,marginLeft:"16px"}}>
+              <p style={{color:ramo.cor,fontWeight:"bold",margin:"0 0 6px"}}>{ramo.filhos[detalhe.fi].label}</p>
+              <p style={{color:"#c8d8e8",fontSize:"13px",margin:0,lineHeight:1.6}}>{ramo.filhos[detalhe.fi].desc}</p>
+            </div>)}
+          </div>))}
+        </div>
+      </div>);
+    }
+
+    function TelaConsulta(){
+      const [q,setQ]=useState(busca_query);
+      const textoCompleto=RESUMO_BLOCOS.map(b=>b.titulo+"\n"+b.conteudo).join("\n\n")+"\n\n"+SUPER_RESUMO;
+      const linhas=q.length>2?textoCompleto.split("\n").filter(l=>l.toLowerCase().includes(q.toLowerCase())):[];
+      return(<div>
+        <h2 style={{color:"#00c97f",marginBottom:"12px"}}>🔍 Consulta do Conteúdo</h2>
+        <input value={q} onChange={e=>{busca_query=e.target.value;setQ(e.target.value);}} placeholder="Buscar palavra ou termo..." style={{width:"100%",padding:"12px",background:"#1e2a3a",color:"#fff",border:"1px solid #2d3e52",borderRadius:"8px",fontSize:"14px",marginBottom:"14px",boxSizing:"border-box"}}/>
+        {q.length<=2&&RESUMO_BLOCOS.map((b,i)=>(<Card key={i}><p style={{color:"#1a8cff",fontWeight:"bold",marginBottom:"8px"}}>{b.titulo}</p><pre style={{color:"#c8d8e8",fontSize:"12px",whiteSpace:"pre-wrap",lineHeight:1.7,margin:0}}>{b.conteudo}</pre></Card>))}
+        {q.length>2&&linhas.length===0&&<p style={{color:"#ff5252"}}>Nenhum resultado para "{q}".</p>}
+        {q.length>2&&linhas.map((l,i)=>(<div key={i} style={{background:"#1e2a3a",borderRadius:"6px",padding:"10px 14px",marginBottom:"6px",border:"1px solid #2d3e52"}}><p style={{color:"#c8d8e8",fontSize:"13px",margin:0,lineHeight:1.6}} dangerouslySetInnerHTML={{__html:l.replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gi"),m=>`<mark style="background:#ffaa0044;color:#ffaa00;border-radius:3px;padding:1px 2px">${m}</mark>`)}}/></div>))}
+      </div>);
+    }
+
+    function TelaQuestoesPadrao(){
+      return(<div>
+        <h2 style={{color:"#ff7f50",marginBottom:"16px"}}>📄 Questões Padrão</h2>
+        <p style={{color:"#8ca0b8",fontSize:"13px",marginBottom:"16px"}}>Questões originais do material enviado, sem alterações.</p>
+        {QUESTOES_PADRAO.map((q,i)=>(<Card key={i}>
+          <div style={{display:"flex",justifyContent:"space-between",marginBottom:"8px"}}><span style={{color:"#ff7f50",fontWeight:"bold",fontSize:"12px"}}>{q.tipo}</span><span style={{color:"#8ca0b8",fontSize:"12px"}}>Q{i+1}/{QUESTOES_PADRAO.length}</span></div>
+          <p style={{color:"#c8d8e8",lineHeight:1.7,marginBottom:"10px"}}>{q.enunciado}</p>
+          {q.opcoes&&q.opcoes.map((o,j)=>(<p key={j} style={{color:o.startsWith(q.gabarito)?"#00c97f":"#8ca0b8",fontSize:"13px",marginBottom:"4px",paddingLeft:"8px"}}>{o.startsWith(q.gabarito)?"✅ ":"   "}{o}</p>))}
+          {q.gabarito&&!q.opcoes&&(<div style={{background:"#0a2a1a",borderRadius:"6px",padding:"10px",border:"1px solid #00c97f",marginTop:"8px"}}><p style={{color:"#00c97f",fontSize:"13px",margin:0}}>✅ {q.gabarito}</p></div>)}
+        </Card>))}
+      </div>);
+    }
+
+    function TelaSuperResumo(){
+      return(<div><h2 style={{color:"#1a8cff",marginBottom:"16px"}}>⚡ Super Resumo</h2><div style={{background:"#0a1a2a",borderRadius:"10px",padding:"20px",border:"1px solid #2a3f5c"}}><pre style={{color:"#c8d8e8",fontSize:"13px",whiteSpace:"pre-wrap",lineHeight:1.8,margin:0}}>{SUPER_RESUMO}</pre></div></div>);
+    }
+
+    function TelaResumo(){
+      const [aba,setAba]=useState(0);
+      return(<div>
+        <h2 style={{color:"#b44fff",marginBottom:"12px"}}>📚 Resumo Completo</h2>
+        <div style={{display:"flex",flexWrap:"wrap",gap:"6px",marginBottom:"14px"}}>{RESUMO_BLOCOS.map((b,i)=>(<button key={i} onClick={()=>setAba(i)} style={{padding:"6px 12px",background:aba===i?"#b44fff":"#1e2a3a",color:aba===i?"#fff":"#8ca0b8",border:`1px solid ${aba===i?"#b44fff":"#2d3e52"}`,borderRadius:"6px",cursor:"pointer",fontSize:"12px"}}>B{i+1}</button>))}</div>
+        <Card><p style={{color:"#b44fff",fontWeight:"bold",marginBottom:"12px"}}>{RESUMO_BLOCOS[aba].titulo}</p><pre style={{color:"#c8d8e8",fontSize:"13px",whiteSpace:"pre-wrap",lineHeight:1.8,margin:0}}>{RESUMO_BLOCOS[aba].conteudo}</pre></Card>
+      </div>);
+    }
+
+    function TelaInicio({setScreen}){
+      const tipos=[{icon:"🎯",label:"Múltipla Escolha",screen:"mc",cor:"#1a8cff"},{icon:"✅",label:"Certo ou Errado",screen:"ce",cor:"#00c97f"},{icon:"✏️",label:"Complete Lacunas",screen:"cl",cor:"#ffaa00"},{icon:"📖",label:"Definições",screen:"def",cor:"#b44fff"},{icon:"🔗",label:"Correlacione",screen:"cor",cor:"#ff7f50"},{icon:"🗣️",label:"Cite",screen:"cite",cor:"#00c97f"},{icon:"📋",label:"Liste",screen:"liste",cor:"#b44fff"},{icon:"🔵",label:"V ou F",screen:"vf",cor:"#1a8cff"},{icon:"🃏",label:"Flashcards",screen:"fc",cor:"#ffaa00"},{icon:"🗺️",label:"Mapa Mental",screen:"mm",cor:"#1a8cff"},{icon:"📄",label:"Questões Padrão",screen:"qp",cor:"#ff7f50"},{icon:"🔍",label:"Consulta",screen:"cons",cor:"#00c97f"},{icon:"⚡",label:"Super Resumo",screen:"sr",cor:"#1a8cff"},{icon:"📚",label:"Resumo Completo",screen:"res",cor:"#b44fff"}];
+      return(<div>
+        <div style={{textAlign:"center",marginBottom:"24px",padding:"24px",background:"linear-gradient(135deg,#0a1a3a,#1a3a6a)",borderRadius:"12px",border:"1px solid #2a3f5c"}}>
+          <div style={{fontSize:"48px",marginBottom:"8px"}}>⚓</div>
+          <h1 style={{color:"#1a8cff",margin:"0 0 6px",fontSize:"22px"}}>GptOpFuzNav</h1>
+          <p style={{color:"#8ca0b8",margin:0,fontSize:"13px"}}>Grupo de Operações de Fuzileiros Navais</p>
+          <p style={{color:"#c8d8e8",margin:"8px 0 0",fontSize:"12px"}}>{MC_QS.length} MC • {CE_QS.length} C/E • {CL_QS.length} Lacunas • {DEF_QS.length} Def • {COR_SETS.length} Cor • {CITE_QS.length} Cite • {LISTE_QS.length} Liste • {VF_QS.length} VF • {FLASHCARDS.length} FC</p>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:"10px"}}>
+          {tipos.map((t,i)=>(<div key={i} onClick={()=>setScreen(t.screen)} style={{background:"#14203a",border:`2px solid ${t.cor}33`,borderRadius:"10px",padding:"14px",cursor:"pointer",textAlign:"center"}}><div style={{fontSize:"24px",marginBottom:"6px"}}>{t.icon}</div><p style={{color:t.cor,fontSize:"12px",fontWeight:"bold",margin:0}}>{t.label}</p></div>))}
+        </div>
+      </div>);
+    }
+
+    /* ═══ APP PRINCIPAL ═══ */
+    function App(){
+      const [screen,setScreen]=useState("home");
+      const [tick,setTick]=useState(0);
+      function refresh(){setTick(t=>t+1);}
+      const abas=[{id:"home",label:"🏠 Início"},{id:"sr",label:"⚡ Super"},{id:"res",label:"📚 Resumo"},{id:"mm",label:"🗺️ Mapa"},{id:"fc",label:"🃏 Flash"},{id:"cons",label:"🔍 Busca"},{id:"qp",label:"📄 Padrão"}];
+      const exercicios=[{id:"mc",label:"🎯 MC"},{id:"ce",label:"✅ C/E"},{id:"cl",label:"✏️ Lac"},{id:"def",label:"📖 Def"},{id:"cor",label:"🔗 Cor"},{id:"cite",label:"🗣️ Cite"},{id:"liste",label:"📋 Liste"},{id:"vf",label:"🔵 V/F"}];
+      return(
+        <div style={{minHeight:"100vh",background:"#0a1220",fontFamily:"'Segoe UI',Arial,sans-serif",color:"#c8d8e8"}}>
+          <div style={{background:"#0d1b2e",borderBottom:"1px solid #1a2a3e",padding:"8px 10px",position:"sticky",top:0,zIndex:100}}>
+            <div style={{display:"flex",flexWrap:"wrap",gap:"4px",maxWidth:"900px",margin:"0 auto"}}>
+              {abas.map(a=><BtnNav key={a.id} label={a.label} ativo={screen===a.id} onClick={()=>setScreen(a.id)}/>)}
+            </div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:"4px",maxWidth:"900px",margin:"4px auto 0",borderTop:"1px solid #1a2a3e",paddingTop:"4px"}}>
+              <span style={{color:"#8ca0b8",fontSize:"11px",padding:"4px 6px",alignSelf:"center"}}>Exercícios:</span>
+              {exercicios.map(a=><BtnNav key={a.id} label={a.label} ativo={screen===a.id} onClick={()=>setScreen(a.id)}/>)}
+            </div>
+          </div>
+          <div style={{maxWidth:"900px",margin:"0 auto",padding:"16px 12px 40px"}}>
+            {screen==="home"&&<TelaInicio setScreen={setScreen}/>}
+            {screen==="sr"&&<TelaSuperResumo/>}
+            {screen==="res"&&<TelaResumo/>}
+            {screen==="mm"&&<TelaMapaMental/>}
+            {screen==="fc"&&<TelaFlashcards refresh={refresh}/>}
+            {screen==="cons"&&<TelaConsulta/>}
+            {screen==="qp"&&<TelaQuestoesPadrao/>}
+            {screen==="mc"&&<TelaMultiplaEscolha refresh={refresh}/>}
+            {screen==="ce"&&<TelaCertoErrado refresh={refresh}/>}
+            {screen==="cl"&&<TelaCompleteLacunas refresh={refresh}/>}
+            {screen==="def"&&<TelaDefinicoes refresh={refresh}/>}
+            {screen==="cor"&&<TelaCorrelacione refresh={refresh}/>}
+            {screen==="cite"&&<TelaCite refresh={refresh}/>}
+            {screen==="liste"&&<TelaListe refresh={refresh}/>}
+            {screen==="vf"&&<TelaVF refresh={refresh}/>}
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+  </script>
+
+  <script>
+    if('serviceWorker' in navigator){
+      window.addEventListener('load',()=>{
+        navigator.serviceWorker.register('/GptOpFuzNav-FuzNav2026/sw.js').catch(()=>{});
+      });
+    }
+  </script>
+</body>
+</html>
